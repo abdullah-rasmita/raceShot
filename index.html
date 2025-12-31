@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mini Car Runner</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121826;
+      --text: #e7eefc;
+      --muted: #9bb0d1;
+      --accent: #5eead4;
+      --shadow: rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: radial-gradient(1200px 800px at 70% 10%, #182033 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding-bottom: 104px; /* space so fixed buttons don't cover the car */
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(18,24,38,.88);
+      box-shadow: 0 10px 30px var(--shadow);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.1;
+    }
+    .title strong { font-size: 15px; letter-spacing: .3px; }
+    .title span { font-size: 12px; color: var(--muted); }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 12px;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .chip b { font-variant-numeric: tabular-nums; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 4px rgba(94,234,212,.12); }
+    .dot.gray { background: rgba(255,255,255,.35); box-shadow: 0 0 0 4px rgba(255,255,255,.06); }
+    .dot.blue { background: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,.12); }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .2px;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease;
+      user-select: none;
+    }
+    .btn:hover { background: rgba(255,255,255,.11); }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn.primary { background: rgba(94,234,212,.14); border-color: rgba(94,234,212,.24); }
+    .btn.primary:hover { background: rgba(94,234,212,.18); }
+
+    .stage {
+      position: relative;
+      width: min(520px, 100%);
+      margin: 0 auto;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(#0c1220, #0a0f1a);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 20px 60px var(--shadow);
+      aspect-ratio: 9 / 16;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(900px 600px at 50% -20%, rgba(94,234,212,.08) 0%, transparent 55%),
+        linear-gradient(#0a1020, #070b12);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(6, 8, 12, .56);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+      z-index: 20;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+
+    .card {
+      width: min(380px, 100%);
+      border-radius: 16px;
+      background: rgba(18, 24, 38, .92);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      padding: 16px;
+      text-align: center;
+    }
+    .card h1 { margin: 0 0 6px 0; font-size: 18px; letter-spacing: .3px; }
+    .card p { margin: 0 0 12px 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+
+    .hint {
+      font-size: 12px;
+      color: rgba(231,238,252,.86);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align: left;
+      margin: 10px 0 14px 0;
+    }
+    .hint kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      margin: 0 2px;
+      white-space: nowrap;
+    }
+    .card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    /* ===== Touch controls: FIXED to phone screen bottom ===== */
+    .touch {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      display: none;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 12px;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    @media (max-width: 900px) {
+      .touch { display: flex; }
+    }
+
+    .touch button {
+      pointer-events: auto;
+      width: 30%;
+      max-width: 220px;
+      border-radius: 14px;
+      padding: 14px 12px;
+      font-size: 14px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      color: var(--text);
+      font-weight: 800;
+    }
+    .touch button.primary {
+      background: rgba(94,234,212,.16);
+      border-color: rgba(94,234,212,.28);
+    }
+    .touch button:active { transform: translateY(1px) scale(.99); }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(155,176,209,.9);
+      opacity: .9;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="app">
+      <div class="topbar">
+        <div class="title">
+          <strong>Mini Car Runner</strong>
+          <span>Endless obstacles · Left/Right + Shoot</span>
+        </div>
+
+        <div class="stats">
+          <div class="chip"><span class="dot"></span> <span>Score</span> <b id="score">0</b></div>
+          <div class="chip"><span class="dot gray"></span> <span>Speed</span> <b id="speed">1.0</b></div>
+          <div class="chip" id="bulletsChip" style="display:none"><span class="dot blue"></span> <span>Bullets</span> <b id="bullets">0</b></div>
+          <button class="btn" id="pauseBtn" type="button">Pause</button>
+          <button class="btn primary" id="restartBtn" type="button">Restart</button>
+        </div>
+      </div>
+
+      <div class="stage" id="stage">
+        <canvas id="game" width="540" height="960"></canvas>
+
+        <div class="overlay show" id="overlay">
+          <div class="card">
+            <h1 id="overlayTitle">Choose Mode</h1>
+            <p id="overlaySub">Pick a mode to start.</p>
+
+            <div class="hint" id="hintBox">
+              Controls:
+              <div style="margin-top:8px">
+                <kbd>←</kbd>/<kbd>→</kbd> or <kbd>A</kbd>/<kbd>D</kbd> ·
+                <kbd>F</kbd> shoot ·
+                <kbd>Space</kbd> pause · <kbd>R</kbd> restart
+              </div>
+              <div style="margin-top:8px;opacity:.85" id="hintSub">
+                On phone: use the fixed bottom Left/Right/Shoot buttons.
+              </div>
+            </div>
+
+            <div class="row" id="modeRow">
+              <button class="btn primary" id="modeInfiniteBtn" type="button">Infinite Shoot</button>
+              <button class="btn" id="modeScarcityBtn" type="button">Scarcity</button>
+            </div>
+
+            <div class="row" id="startRow" style="display:none">
+              <button class="btn primary" id="startBtn" type="button">Start</button>
+              <button class="btn" id="howBtn" type="button">How it works</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Static single-file app — commit this as <code>index.html</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Fixed touch controls (outside stage so always visible) -->
+  <div class="touch" id="touchControls">
+    <button id="leftBtn" type="button">◀ Left</button>
+    <button id="shootBtn" type="button" class="primary">● Shoot</button>
+    <button id="rightBtn" type="button">Right ▶</button>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const scoreEl = document.getElementById("score");
+      const speedEl = document.getElementById("speed");
+      const bulletsChip = document.getElementById("bulletsChip");
+      const bulletsEl = document.getElementById("bullets");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const restartBtn = document.getElementById("restartBtn");
+
+      const overlay = document.getElementById("overlay");
+      const overlayTitle = document.getElementById("overlayTitle");
+      const overlaySub = document.getElementById("overlaySub");
+      const startBtn = document.getElementById("startBtn");
+      const howBtn = document.getElementById("howBtn");
+      const modeRow = document.getElementById("modeRow");
+      const startRow = document.getElementById("startRow");
+      const hintSub = document.getElementById("hintSub");
+
+      const modeInfiniteBtn = document.getElementById("modeInfiniteBtn");
+      const modeScarcityBtn = document.getElementById("modeScarcityBtn");
+
+      const leftBtn = document.getElementById("leftBtn");
+      const rightBtn = document.getElementById("rightBtn");
+      const shootBtn = document.getElementById("shootBtn");
+
+      const road = { x: Math.floor(W * 0.18), y: 0, w: Math.floor(W * 0.64), h: H, lanes: 3 };
+      const laneW = road.w / road.lanes;
+
+      const car = {
+        w: Math.floor(laneW * 0.62),
+        h: Math.floor(laneW * 1.08),
+        x: 0,
+        y: Math.floor(H * 0.80),
+        lane: 1,
+        color: "#5eead4",
+      };
+
+      function laneCenter(laneIdx) { return road.x + laneW * laneIdx + laneW / 2; }
+      function resetCar() { car.lane = 1; car.x = Math.floor(laneCenter(car.lane) - car.w / 2); }
+
+      const obstacles = [];
+      const bullets = [];
+
+      // Modes
+      let mode = null; // "infinite" | "scarcity"
+      let ammo = Infinity; // bullets available (scarcity only)
+
+      const obstacleKinds = [
+        { name: "barrel", w: 0.55, h: 0.55, color: "#fbbf24" },
+        { name: "cone",   w: 0.45, h: 0.65, color: "#fb7185" },
+        // "block" is treated as the "box" (bigger => more bullets)
+        { name: "block",  w: 0.78, h: 0.62, color: "#a78bfa" },
+        { name: "oil",    w: 0.75, h: 0.35, color: "#94a3b8" },
+      ];
+
+      const ammoKind = { name: "ammo", w: 0.74, h: 0.56, color: "#60a5fa" };
+
+      function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+      function kindHP(kindName) {
+        // Bigger boxes ("block") require more bullets.
+        if (kindName === "cone") return 1;
+        if (kindName === "barrel") return 2;
+        if (kindName === "oil") return 2;
+        if (kindName === "block") return 4; // big "box"
+        return 2;
+      }
+
+      function ammoValueBySpeed() {
+        // shown in tens: 1=>10, 2=>20, ...
+        // scale a bit with speed so late game can refill more.
+        const hi = (speedMul < 1.7) ? 3 : (speedMul < 2.6) ? 4 : 5;
+        return randInt(1, hi);
+      }
+
+      function spawnObstacle() {
+        const lane = randInt(0, road.lanes - 1);
+
+        let kind = null;
+        let isAmmo = false;
+
+        if (mode === "scarcity") {
+          const ammoProb = clamp(0.14 + (speedMul - 1.0) * 0.03, 0.14, 0.22);
+          if (Math.random() < ammoProb) {
+            kind = ammoKind;
+            isAmmo = true;
+          }
+        }
+
+        if (!kind) {
+          kind = obstacleKinds[randInt(0, obstacleKinds.length - 1)];
+        }
+
+        const ow = Math.floor(laneW * kind.w);
+        const oh = Math.floor(laneW * kind.h);
+        const ox = Math.floor(laneCenter(lane) - ow / 2);
+        const oy = -oh - 10;
+
+        // avoid too-close same lane spawn
+        for (const o of obstacles) {
+          if (o.lane === lane && Math.abs(o.y - oy) < oh * 2.2) return;
+        }
+
+        if (isAmmo) {
+          const val = ammoValueBySpeed(); // 1..5 => 10..50
+          obstacles.push({
+            lane, x: ox, y: oy, w: ow, h: oh,
+            kind: "ammo", color: kind.color,
+            isAmmo: true,
+            value: val,
+            hp: 1, hpMax: 1,
+          });
+        } else {
+          const hp0 = kindHP(kind.name);
+          obstacles.push({
+            lane, x: ox, y: oy, w: ow, h: oh,
+            kind: kind.name, color: kind.color,
+            isAmmo: false,
+            value: 0,
+            hp: hp0, hpMax: hp0,
+          });
+        }
+      }
+
+      const dashes = [];
+      function initDashes() {
+        dashes.length = 0;
+        const dashH = 44, gap = 32, total = dashH + gap;
+        const count = Math.ceil(H / total) + 2;
+        for (let i = 0; i < count; i++) dashes.push({ y: i * total });
+      }
+
+      let running = false;
+      let paused = false;
+      let crashed = false;
+
+      let score = 0;
+      let speedMul = 1.0;
+      let lastT = 0;
+
+      let spawnTimer = 0;
+      let spawnEvery = 0.95;
+
+      let moveLeftHeld = false;
+      let moveRightHeld = false;
+      let laneMoveCooldown = 0;
+      const laneMoveDelay = 0.12;
+
+      let shootHeld = false;
+      let shootCooldown = 0;
+      const shootDelay = 0.14; // fire rate
+      let shootHeldTimer = 0;
+
+      function aabb(ax, ay, aw, ah, bx, by, bw, bh) {
+        return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+      }
+
+      function setOverlay(show, title, sub) {
+        overlay.classList.toggle("show", !!show);
+        if (title != null) overlayTitle.textContent = title;
+        if (sub != null) overlaySub.textContent = sub;
+      }
+
+      function setUI() {
+        scoreEl.textContent = Math.floor(score).toString();
+        speedEl.textContent = speedMul.toFixed(1);
+        pauseBtn.textContent = paused ? "Resume" : "Pause";
+
+        // bullets display only meaningful after mode chosen
+        if (!mode) {
+          bulletsChip.style.display = "none";
+        } else {
+          bulletsChip.style.display = "inline-flex";
+          bulletsEl.textContent = (mode === "scarcity") ? String(ammo) : "∞";
+        }
+      }
+
+      function resetGame() {
+        obstacles.length = 0;
+        bullets.length = 0;
+
+        score = 0;
+        speedMul = 1.0;
+        spawnTimer = 0;
+        spawnEvery = 0.95;
+
+        crashed = false;
+        paused = false;
+
+        laneMoveCooldown = 0;
+        shootCooldown = 0;
+        shootHeldTimer = 0;
+
+        ammo = (mode === "scarcity") ? 0 : Infinity;
+
+        resetCar();
+        initDashes();
+        setUI();
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w/2, h/2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
+      }
+
+      function drawRoad() {
+        roundRect(ctx, road.x, road.y, road.w, road.h, 18);
+        ctx.fillStyle = "rgba(255,255,255,0.04)";
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255,255,255,0.14)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(road.x, road.y, road.w, road.h);
+        ctx.clip();
+
+        for (let li = 1; li < road.lanes; li++) {
+          const lx = road.x + li * laneW;
+          ctx.fillStyle = "rgba(255,255,255,0.10)";
+          for (const d of dashes) ctx.fillRect(lx - 2, d.y, 4, 44);
+        }
+        ctx.restore();
+
+        ctx.fillStyle = "rgba(94,234,212,0.03)";
+        ctx.fillRect(road.x + road.w * 0.25, 0, road.w * 0.5, H);
+      }
+
+      function drawCar() {
+        const x = car.x, y = car.y, w = car.w, h = car.h;
+        ctx.save();
+
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        roundRect(ctx, x + 6, y + 10, w, h, 16);
+        ctx.fill();
+
+        ctx.fillStyle = car.color;
+        roundRect(ctx, x, y, w, h, 16);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(8, 12, 18, 0.55)";
+        roundRect(ctx, x + w*0.18, y + h*0.18, w*0.64, h*0.26, 12);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.18)";
+        roundRect(ctx, x + w*0.45, y + h*0.12, w*0.10, h*0.72, 10);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.75)";
+        roundRect(ctx, x + w*0.12, y + h*0.06, w*0.18, h*0.08, 8); ctx.fill();
+        roundRect(ctx, x + w*0.70, y + h*0.06, w*0.18, h*0.08, 8); ctx.fill();
+
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.fillRect(x - 6, y + h*0.20, 8, h*0.22);
+        ctx.fillRect(x - 6, y + h*0.58, 8, h*0.22);
+        ctx.fillRect(x + w - 2, y + h*0.20, 8, h*0.22);
+        ctx.fillRect(x + w - 2, y + h*0.58, 8, h*0.22);
+
+        // tiny muzzle / cannon hint
+        ctx.fillStyle = "rgba(231,238,252,0.8)";
+        roundRect(ctx, x + w*0.47, y - 6, w*0.06, 10, 6);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawAmmoBox(o) {
+        ctx.save();
+
+        // shadow
+        ctx.fillStyle = "rgba(0,0,0,0.33)";
+        roundRect(ctx, o.x + 5, o.y + 8, o.w, o.h, 14);
+        ctx.fill();
+
+        // body
+        ctx.fillStyle = o.color;
+        roundRect(ctx, o.x, o.y, o.w, o.h, 14);
+        ctx.fill();
+
+        // inner panel
+        ctx.fillStyle = "rgba(8, 12, 18, 0.25)";
+        roundRect(ctx, o.x + o.w*0.10, o.y + o.h*0.18, o.w*0.80, o.h*0.64, 12);
+        ctx.fill();
+
+        // text: value (in tens)
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(231,238,252,0.95)";
+        ctx.font = "900 42px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText(String(o.value), o.x + o.w/2, o.y + o.h*0.52);
+
+        ctx.fillStyle = "rgba(231,238,252,0.80)";
+        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText("AMMO", o.x + o.w/2, o.y + o.h*0.82);
+
+        ctx.restore();
+      }
+
+      function drawObstacle(o) {
+        if (o.isAmmo) return drawAmmoBox(o);
+
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.33)";
+        roundRect(ctx, o.x + 5, o.y + 8, o.w, o.h, 12);
+        ctx.fill();
+
+        ctx.fillStyle = o.color;
+        roundRect(ctx, o.x, o.y, o.w, o.h, 12);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.16)";
+        if (o.kind === "cone") {
+          roundRect(ctx, o.x + o.w*0.18, o.y + o.h*0.35, o.w*0.64, o.h*0.10, 8); ctx.fill();
+          roundRect(ctx, o.x + o.w*0.22, o.y + o.h*0.55, o.w*0.56, o.h*0.10, 8); ctx.fill();
+        } else if (o.kind === "barrel") {
+          roundRect(ctx, o.x + o.w*0.10, o.y + o.h*0.18, o.w*0.80, o.h*0.10, 8); ctx.fill();
+          roundRect(ctx, o.x + o.w*0.10, o.y + o.h*0.72, o.w*0.80, o.h*0.10, 8); ctx.fill();
+        } else if (o.kind === "oil") {
+          roundRect(ctx, o.x + o.w*0.12, o.y + o.h*0.22, o.w*0.76, o.h*0.56, 999); ctx.fill();
+        } else {
+          roundRect(ctx, o.x + o.w*0.14, o.y + o.h*0.20, o.w*0.72, o.h*0.60, 10); ctx.fill();
+        }
+
+        // HP bar (only if needs >1 bullet)
+        if (o.hpMax > 1) {
+          const pad = 8;
+          const barW = o.w - pad*2;
+          const barH = 6;
+          const bx = o.x + pad;
+          const by = o.y + 8;
+          ctx.fillStyle = "rgba(0,0,0,0.35)";
+          roundRect(ctx, bx, by, barW, barH, 4);
+          ctx.fill();
+          const frac = clamp(o.hp / o.hpMax, 0, 1);
+          ctx.fillStyle = "rgba(231,238,252,0.65)";
+          roundRect(ctx, bx, by, barW * frac, barH, 4);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      function drawBullet(b) {
+        ctx.save();
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = "rgba(231,238,252,0.9)";
+        roundRect(ctx, b.x, b.y, b.w, b.h, 8);
+        ctx.fill();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = "rgba(94,234,212,0.7)";
+        roundRect(ctx, b.x + 2, b.y + b.h*0.25, b.w - 4, b.h*0.5, 6);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawHUD() {
+        if (!running) return;
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
+        roundRect(ctx, 14, 14, 330, 34, 12);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "rgba(231,238,252,0.9)";
+        ctx.font = "600 13px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        const text = (mode === "scarcity")
+          ? "←/→ move · F shoot (needs bullets) · Space pause"
+          : "←/→ move · F shoot · Space pause";
+        ctx.fillText(text, 24, 36);
+        ctx.restore();
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, W, H);
+
+        drawRoad();
+        for (const o of obstacles) drawObstacle(o);
+        for (const b of bullets) drawBullet(b);
+        drawCar();
+        drawHUD();
+
+        if (paused) {
+          ctx.save();
+          ctx.fillStyle = "rgba(0,0,0,0.35)";
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = "rgba(231,238,252,0.92)";
+          ctx.font = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("PAUSED", W/2, H/2);
+          ctx.font = "600 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+          ctx.fillStyle = "rgba(231,238,252,0.75)";
+          ctx.fillText("Tap Resume / press Space", W/2, H/2 + 28);
+          ctx.restore();
+        }
+      }
+
+      function tryMove(dir) {
+        const next = clamp(car.lane + dir, 0, road.lanes - 1);
+        if (next !== car.lane) {
+          car.lane = next;
+          laneMoveCooldown = laneMoveDelay;
+        }
+      }
+
+      function grantAmmo(units) {
+        // units is "value in tens": 1=>10, 2=>20...
+        const gain = units * 10;
+        if (mode !== "scarcity") return; // only meaningful in scarcity
+        ammo += gain;
+        setUI();
+      }
+
+      function shootOnce() {
+        if (!running || paused || crashed) return;
+        if (!mode) return;
+        if (shootCooldown > 0) return;
+
+        if (mode === "scarcity") {
+          if (ammo <= 0) return;
+          ammo -= 1;
+        }
+
+        shootCooldown = shootDelay;
+
+        const bw = Math.max(8, Math.floor(laneW * 0.10));
+        const bh = Math.max(18, Math.floor(laneW * 0.22));
+        const bx = Math.floor(car.x + car.w/2 - bw/2);
+        const by = Math.floor(car.y - bh - 6);
+        bullets.push({ x: bx, y: by, w: bw, h: bh, vy: 980 });
+
+        setUI();
+      }
+
+      function update(dt) {
+        speedMul += dt * 0.03;
+        speedMul = Math.min(speedMul, 4.0);
+        const speed = 520 * speedMul;
+
+        spawnEvery = clamp(0.95 - (speedMul - 1.0) * 0.15, 0.35, 0.95);
+
+        score += dt * (12 * speedMul);
+        setUI();
+
+        laneMoveCooldown = Math.max(0, laneMoveCooldown - dt);
+        if (laneMoveCooldown <= 0) {
+          if (moveLeftHeld) tryMove(-1);
+          else if (moveRightHeld) tryMove(+1);
+        }
+
+        // shooting: cooldown + hold-repeat
+        shootCooldown = Math.max(0, shootCooldown - dt);
+        if (shootHeld) {
+          shootHeldTimer += dt;
+          if (shootHeldTimer >= shootDelay) {
+            shootHeldTimer = 0;
+            shootOnce();
+          }
+        } else {
+          shootHeldTimer = 0;
+        }
+
+        const targetX = laneCenter(car.lane) - car.w / 2;
+        car.x += (targetX - car.x) * (1 - Math.pow(0.001, dt));
+
+        const dashSpeed = speed * 0.65;
+        const dashH = 44, gap = 32, total = dashH + gap;
+        for (const d of dashes) d.y += dashSpeed * dt;
+        for (const d of dashes) if (d.y > H) d.y -= (Math.ceil(H / total) + 2) * total;
+
+        spawnTimer += dt;
+        while (spawnTimer >= spawnEvery) {
+          spawnTimer -= spawnEvery;
+          spawnObstacle();
+          if (speedMul > 2.0 && Math.random() < 0.25) spawnObstacle();
+        }
+
+        // move obstacles
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          obstacles[i].y += speed * dt;
+          if (obstacles[i].y > H + 80) obstacles.splice(i, 1);
+        }
+
+        // move bullets upward
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          bullets[i].y -= bullets[i].vy * dt;
+          if (bullets[i].y < -bullets[i].h - 20) bullets.splice(i, 1);
+        }
+
+        // bullet vs obstacle collision
+        for (let bi = bullets.length - 1; bi >= 0; bi--) {
+          const b = bullets[bi];
+          let hit = false;
+
+          for (let oi = obstacles.length - 1; oi >= 0; oi--) {
+            const o = obstacles[oi];
+            if (aabb(b.x, b.y, b.w, b.h, o.x, o.y, o.w, o.h)) {
+              hit = true;
+
+              if (o.isAmmo) {
+                // In scarcity: shooting ammo box gives ammo (instead of "destroying to score")
+                if (mode === "scarcity") {
+                  grantAmmo(o.value);
+                  score += 2;
+                }
+                obstacles.splice(oi, 1);
+              } else {
+                o.hp -= 1;
+                if (o.hp <= 0) {
+                  obstacles.splice(oi, 1);
+                  score += 8 + 3 * (o.hpMax - 1);
+                } else {
+                  score += 1;
+                }
+              }
+              break;
+            }
+          }
+
+          if (hit) bullets.splice(bi, 1);
+        }
+
+        // car collision
+        for (let oi = obstacles.length - 1; oi >= 0; oi--) {
+          const o = obstacles[oi];
+          if (!aabb(car.x, car.y, car.w, car.h, o.x, o.y, o.w, o.h)) continue;
+
+          if (o.isAmmo) {
+            // collect ammo instead of dying
+            if (mode === "scarcity") {
+              grantAmmo(o.value);
+              score += 2;
+            }
+            obstacles.splice(oi, 1);
+            continue;
+          }
+
+          crash();
+          break;
+        }
+      }
+
+      function step(t) {
+        requestAnimationFrame(step);
+        if (!running) { render(); lastT = t; return; }
+
+        const dt = Math.min(0.033, (t - lastT) / 1000 || 0);
+        lastT = t;
+
+        if (paused || crashed) { render(); return; }
+
+        update(dt);
+        render();
+      }
+
+      function start() {
+        if (!mode) return;
+        running = true;
+        paused = false;
+        crashed = false;
+        setOverlay(false);
+        lastT = performance.now();
+        setUI();
+      }
+
+      function crash() {
+        crashed = true;
+        paused = false;
+        setOverlay(true, "Crashed!", `Final score: ${Math.floor(score)}. Tap Start or press R.`);
+        // keep startRow visible so they can restart
+        modeRow.style.display = "none";
+        startRow.style.display = "flex";
+      }
+
+      function togglePause() {
+        if (!running || crashed) return;
+        paused = !paused;
+        setUI();
+      }
+
+      function startOrRestart() {
+        if (!mode) return;
+        resetGame();
+        start();
+      }
+
+      function onKeyDown(e) {
+        if (e.repeat) return;
+        const k = e.key.toLowerCase();
+        if (k === "arrowleft" || k === "a") { moveLeftHeld = true; e.preventDefault(); }
+        else if (k === "arrowright" || k === "d") { moveRightHeld = true; e.preventDefault(); }
+        else if (k === "f") { shootOnce(); e.preventDefault(); }
+        else if (k === " " || k === "spacebar") { togglePause(); e.preventDefault(); }
+        else if (k === "r") { startOrRestart(); e.preventDefault(); }
+      }
+      function onKeyUp(e) {
+        const k = e.key.toLowerCase();
+        if (k === "arrowleft" || k === "a") moveLeftHeld = false;
+        if (k === "arrowright" || k === "d") moveRightHeld = false;
+      }
+
+      function bindTouchHold(btn, setter) {
+        btn.addEventListener("touchstart", (e) => { setter(true); e.preventDefault(); }, { passive: false });
+        btn.addEventListener("touchend",   (e) => { setter(false); e.preventDefault(); }, { passive: false });
+        btn.addEventListener("touchcancel",() => setter(false));
+
+        btn.addEventListener("pointerdown", (e) => { setter(true); e.preventDefault(); });
+        btn.addEventListener("pointerup",   (e) => { setter(false); e.preventDefault(); });
+        btn.addEventListener("pointercancel", () => setter(false));
+        btn.addEventListener("pointerleave",  () => setter(false));
+      }
+
+      function chooseMode(nextMode) {
+        mode = nextMode;
+
+        // update overlay text + hint
+        if (mode === "infinite") {
+          setOverlay(true, "Infinite Shoot", "Unlimited bullets. Shoot to destroy obstacles. Bigger boxes need more bullets.");
+          hintSub.textContent = "On phone: use fixed Left/Right/Shoot. (Unlimited bullets)";
+        } else {
+          setOverlay(true, "Scarcity", "You start with 0 bullets. Collect AMMO boxes by hitting or shooting them (number is in tens).");
+          hintSub.textContent = "On phone: use fixed Left/Right/Shoot. (Shooting needs bullets; collect AMMO boxes)";
+        }
+
+        // show Start/How, hide mode selection
+        modeRow.style.display = "none";
+        startRow.style.display = "flex";
+
+        // reset everything for the chosen mode
+        resetGame();
+
+        // keep overlay visible (ready)
+        overlay.classList.add("show");
+      }
+
+      function showModePicker() {
+        mode = null;
+        running = false;
+        paused = false;
+        crashed = false;
+
+        modeRow.style.display = "flex";
+        startRow.style.display = "none";
+
+        setOverlay(true, "Choose Mode", "Pick a mode to start.");
+        hintSub.textContent = "On phone: use the fixed bottom Left/Right/Shoot buttons.";
+
+        setUI();
+      }
+
+      // UI
+      pauseBtn.addEventListener("click", () => togglePause());
+      restartBtn.addEventListener("click", () => startOrRestart());
+      startBtn.addEventListener("click", () => startOrRestart());
+
+      modeInfiniteBtn.addEventListener("click", () => chooseMode("infinite"));
+      modeScarcityBtn.addEventListener("click", () => chooseMode("scarcity"));
+
+      howBtn.addEventListener("click", () => {
+        if (!mode) return;
+        const text =
+          (mode === "infinite")
+            ? "Mode: Infinite Shoot\n\n" +
+              "• Unlimited bullets (Bullets: ∞).\n" +
+              "• Shoot (F / Shoot button) to destroy obstacles.\n" +
+              "• Bigger boxes need more bullets.\n" +
+              "• Dodge if you prefer.\n"
+            : "Mode: Scarcity\n\n" +
+              "• You start with 0 bullets.\n" +
+              "• AMMO boxes appear (blue). The number on it is in tens:\n" +
+              "  1 = 10 bullets, 2 = 20 bullets, etc.\n" +
+              "• Hit an AMMO box OR shoot it to collect bullets.\n" +
+              "• Shooting consumes 1 bullet each time.\n";
+        alert(
+          text +
+          "\nCommon:\n" +
+          "• 3 lanes.\n" +
+          "• Obstacles fall from the top.\n" +
+          "• Speed increases over time.\n" +
+          "• Space pauses, R restarts.\n"
+        );
+      });
+
+      // Touch controls (hold left/right, hold shoot for auto-fire)
+      bindTouchHold(leftBtn,  (v) => { moveLeftHeld = v; if (v) moveRightHeld = false; });
+      bindTouchHold(rightBtn, (v) => { moveRightHeld = v; if (v) moveLeftHeld = false; });
+      bindTouchHold(shootBtn, (v) => { shootHeld = v; if (v) shootOnce(); });
+
+      // Tap stage to start (only after a mode is chosen)
+      document.getElementById("stage").addEventListener("pointerdown", () => {
+        if (!mode) return;
+        if (!running) startOrRestart();
+      });
+
+      window.addEventListener("keydown", onKeyDown, { passive: false });
+      window.addEventListener("keyup", onKeyUp);
+
+      // Init
+      initDashes();
+      resetCar();
+      showModePicker();
+      requestAnimationFrame(step);
+    })();
+  </script>
+</body>
+</html>
