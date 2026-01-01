@@ -5,218 +5,103 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mini Car Runner</title>
   <style>
-    :root {
-      --bg: #0b0f14;
-      --panel: #121826;
-      --text: #e7eefc;
-      --muted: #9bb0d1;
-      --accent: #5eead4;
-      --shadow: rgba(0,0,0,.35);
+    :root{
+      --bg:#0b0f14;--panel:#121826;--text:#e7eefc;--muted:#9bb0d1;--accent:#5eead4;--shadow:rgba(0,0,0,.35)
     }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body {
-      background: radial-gradient(1200px 800px at 70% 10%, #182033 0%, var(--bg) 55%);
-      color: var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      padding-bottom: 104px; /* space so fixed buttons don't cover the car */
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:radial-gradient(1200px 800px at 70% 10%, #182033 0%, var(--bg) 55%);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      padding-bottom:104px;
     }
-
-    .wrap {
-      min-height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 16px;
+    .wrap{min-height:100%;display:grid;place-items:center;padding:16px}
+    .app{width:min(920px,100%);display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;border-radius:16px;background:rgba(18,24,38,.88);
+      box-shadow:0 10px 30px var(--shadow);border:1px solid rgba(255,255,255,.08);
     }
-
-    .app {
-      width: min(920px, 100%);
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      align-items: start;
+    .title{display:flex;flex-direction:column;gap:2px;line-height:1.1}
+    .title strong{font-size:15px;letter-spacing:.3px}
+    .title span{font-size:12px;color:var(--muted)}
+    .stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+      font-size:12px;user-select:none;white-space:nowrap
     }
+    .chip b{font-variant-numeric:tabular-nums}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px rgba(94,234,212,.12)}
+    .dot.gray{background:rgba(255,255,255,.35);box-shadow:0 0 0 4px rgba(255,255,255,.06)}
+    .dot.blue{background:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.12)}
+    .dot.green{background:#34d399;box-shadow:0 0 0 4px rgba(52,211,153,.12)}
+    .dot.pink{background:#fb7185;box-shadow:0 0 0 4px rgba(251,113,133,.12)}
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(18,24,38,.88);
-      box-shadow: 0 10px 30px var(--shadow);
-      border: 1px solid rgba(255,255,255,.08);
+    .btn{
+      appearance:none;border:0;border-radius:12px;padding:10px 12px;color:var(--text);
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);
+      cursor:pointer;font-weight:700;font-size:12px;letter-spacing:.2px;
+      transition:transform .08s ease, background .2s ease, border-color .2s ease;user-select:none
     }
+    .btn:hover{background:rgba(255,255,255,.11)}
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .btn.primary{background:rgba(94,234,212,.14);border-color:rgba(94,234,212,.24)}
+    .btn.primary:hover{background:rgba(94,234,212,.18)}
+    .btn.warn{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.24)}
+    .btn.warn:hover{background:rgba(251,113,133,.18)}
 
-    .title {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      line-height: 1.1;
+    .stage{
+      position:relative;width:min(520px,100%);margin:0 auto;border-radius:18px;overflow:hidden;
+      background:linear-gradient(#0c1220,#0a0f1a);border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 20px 60px var(--shadow);aspect-ratio:9/16;touch-action:none
     }
-    .title strong { font-size: 15px; letter-spacing: .3px; }
-    .title span { font-size: 12px; color: var(--muted); }
-
-    .stats {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.08);
-      font-size: 12px;
-      user-select: none;
-      white-space: nowrap;
-    }
-    .chip b { font-variant-numeric: tabular-nums; }
-    .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 4px rgba(94,234,212,.12); }
-    .dot.gray { background: rgba(255,255,255,.35); box-shadow: 0 0 0 4px rgba(255,255,255,.06); }
-    .dot.blue { background: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,.12); }
-
-    .btn {
-      appearance: none;
-      border: 0;
-      border-radius: 12px;
-      padding: 10px 12px;
-      color: var(--text);
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.10);
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 12px;
-      letter-spacing: .2px;
-      transition: transform .08s ease, background .2s ease, border-color .2s ease;
-      user-select: none;
-    }
-    .btn:hover { background: rgba(255,255,255,.11); }
-    .btn:active { transform: translateY(1px) scale(.99); }
-    .btn.primary { background: rgba(94,234,212,.14); border-color: rgba(94,234,212,.24); }
-    .btn.primary:hover { background: rgba(94,234,212,.18); }
-
-    .stage {
-      position: relative;
-      width: min(520px, 100%);
-      margin: 0 auto;
-      border-radius: 18px;
-      overflow: hidden;
-      background: linear-gradient(#0c1220, #0a0f1a);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 20px 60px var(--shadow);
-      aspect-ratio: 9 / 16;
-      touch-action: none;
-    }
-
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
+    canvas{
+      display:block;width:100%;height:100%;
       background:
         radial-gradient(900px 600px at 50% -20%, rgba(94,234,212,.08) 0%, transparent 55%),
-        linear-gradient(#0a1020, #070b12);
+        linear-gradient(#0a1020,#070b12);
     }
 
-    .overlay {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      padding: 18px;
-      background: rgba(6, 8, 12, .56);
-      backdrop-filter: blur(6px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .18s ease;
-      z-index: 20;
+    .overlay{
+      position:absolute;inset:0;display:grid;place-items:center;padding:18px;
+      background:rgba(6,8,12,.56);backdrop-filter:blur(6px);
+      opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:20
     }
-    .overlay.show { opacity: 1; pointer-events: auto; }
+    .overlay.show{opacity:1;pointer-events:auto}
+    .card{
+      width:min(400px,100%);border-radius:16px;background:rgba(18,24,38,.92);
+      border:1px solid rgba(255,255,255,.10);box-shadow:0 20px 60px rgba(0,0,0,.35);
+      padding:16px;text-align:center
+    }
+    .card h1{margin:0 0 6px 0;font-size:18px;letter-spacing:.3px}
+    .card p{margin:0 0 12px 0;color:var(--muted);font-size:13px;line-height:1.35}
+    .hint{
+      font-size:12px;color:rgba(231,238,252,.86);background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 12px;text-align:left;margin:10px 0 14px 0
+    }
+    .hint kbd{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;
+      padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      margin:0 2px;white-space:nowrap
+    }
+    .card .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
-    .card {
-      width: min(380px, 100%);
-      border-radius: 16px;
-      background: rgba(18, 24, 38, .92);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-      padding: 16px;
-      text-align: center;
+    /* touch controls */
+    .touch{
+      position:fixed;left:0;right:0;bottom:max(12px, env(safe-area-inset-bottom));
+      display:none;justify-content:center;gap:12px;padding:0 12px;pointer-events:none;z-index:9999
     }
-    .card h1 { margin: 0 0 6px 0; font-size: 18px; letter-spacing: .3px; }
-    .card p { margin: 0 0 12px 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    @media (max-width: 900px){ .touch{display:flex} }
+    .touch button{
+      pointer-events:auto;width:30%;max-width:220px;border-radius:14px;padding:14px 12px;font-size:14px;
+      background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:var(--text);font-weight:800
+    }
+    .touch button.primary{background:rgba(94,234,212,.16);border-color:rgba(94,234,212,.28)}
+    .touch button:active{transform:translateY(1px) scale(.99)}
 
-    .hint {
-      font-size: 12px;
-      color: rgba(231,238,252,.86);
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 12px;
-      padding: 10px 12px;
-      text-align: left;
-      margin: 10px 0 14px 0;
-    }
-    .hint kbd {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.12);
-      margin: 0 2px;
-      white-space: nowrap;
-    }
-    .card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-
-    /* ===== Touch controls: FIXED to phone screen bottom ===== */
-    .touch {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: max(12px, env(safe-area-inset-bottom));
-      display: none;
-      justify-content: center;
-      gap: 12px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 9999;
-    }
-
-    @media (max-width: 900px) {
-      .touch { display: flex; }
-    }
-
-    .touch button {
-      pointer-events: auto;
-      width: 30%;
-      max-width: 220px;
-      border-radius: 14px;
-      padding: 14px 12px;
-      font-size: 14px;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.18);
-      color: var(--text);
-      font-weight: 800;
-    }
-    .touch button.primary {
-      background: rgba(94,234,212,.16);
-      border-color: rgba(94,234,212,.28);
-    }
-    .touch button:active { transform: translateY(1px) scale(.99); }
-
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: rgba(155,176,209,.9);
-      opacity: .9;
-    }
+    .footer{text-align:center;font-size:12px;color:rgba(155,176,209,.9);opacity:.9}
   </style>
 </head>
 <body>
@@ -225,13 +110,15 @@
       <div class="topbar">
         <div class="title">
           <strong>Mini Car Runner</strong>
-          <span>Endless obstacles · Left/Right + Shoot</span>
+          <span>Modes: Infinite Shoot / Scarcity · Now with Lives + Sound</span>
         </div>
 
         <div class="stats">
           <div class="chip"><span class="dot"></span> <span>Score</span> <b id="score">0</b></div>
           <div class="chip"><span class="dot gray"></span> <span>Speed</span> <b id="speed">1.0</b></div>
           <div class="chip" id="bulletsChip" style="display:none"><span class="dot blue"></span> <span>Bullets</span> <b id="bullets">0</b></div>
+          <div class="chip" id="livesChip" style="display:none"><span class="dot green"></span> <span>Life</span> <b id="lives">1</b></div>
+          <button class="btn" id="soundBtn" type="button" title="Toggle sound">Sound: On</button>
           <button class="btn" id="pauseBtn" type="button">Pause</button>
           <button class="btn primary" id="restartBtn" type="button">Restart</button>
         </div>
@@ -276,7 +163,6 @@
     </div>
   </div>
 
-  <!-- Fixed touch controls (outside stage so always visible) -->
   <div class="touch" id="touchControls">
     <button id="leftBtn" type="button">◀ Left</button>
     <button id="shootBtn" type="button" class="primary">● Shoot</button>
@@ -285,27 +171,36 @@
 
   <script>
     (() => {
+      // -----------------------------
+      // Canvas
+      // -----------------------------
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
       const W = canvas.width;
       const H = canvas.height;
 
+      // -----------------------------
+      // UI
+      // -----------------------------
       const scoreEl = document.getElementById("score");
       const speedEl = document.getElementById("speed");
       const bulletsChip = document.getElementById("bulletsChip");
       const bulletsEl = document.getElementById("bullets");
+      const livesChip = document.getElementById("livesChip");
+      const livesEl = document.getElementById("lives");
       const pauseBtn = document.getElementById("pauseBtn");
       const restartBtn = document.getElementById("restartBtn");
+      const soundBtn = document.getElementById("soundBtn");
 
       const overlay = document.getElementById("overlay");
       const overlayTitle = document.getElementById("overlayTitle");
       const overlaySub = document.getElementById("overlaySub");
-      const startBtn = document.getElementById("startBtn");
-      const howBtn = document.getElementById("howBtn");
-      const modeRow = document.getElementById("modeRow");
-      const startRow = document.getElementById("startRow");
       const hintSub = document.getElementById("hintSub");
 
+      const modeRow = document.getElementById("modeRow");
+      const startRow = document.getElementById("startRow");
+      const startBtn = document.getElementById("startBtn");
+      const howBtn = document.getElementById("howBtn");
       const modeInfiniteBtn = document.getElementById("modeInfiniteBtn");
       const modeScarcityBtn = document.getElementById("modeScarcityBtn");
 
@@ -313,6 +208,63 @@
       const rightBtn = document.getElementById("rightBtn");
       const shootBtn = document.getElementById("shootBtn");
 
+      // -----------------------------
+      // Simple synth SFX (no external files)
+      // -----------------------------
+      let soundOn = true;
+      let audioCtx = null;
+
+      function ensureAudio() {
+        if (!soundOn) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          audioCtx = new AC();
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+        return audioCtx;
+      }
+
+      function beep({freq=440, dur=0.08, type="sine", gain=0.06, sweep=0, when=0} = {}) {
+        const ac = ensureAudio();
+        if (!ac) return;
+
+        const t0 = ac.currentTime + when;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t0);
+        if (sweep) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + sweep), t0 + dur);
+
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+        o.connect(g);
+        g.connect(ac.destination);
+        o.start(t0);
+        o.stop(t0 + dur + 0.02);
+      }
+
+      // Event SFX
+      const SFX = {
+        gainLife()    { beep({freq: 660, dur: 0.10, type:"sine", gain:0.07, sweep: +220}); beep({freq: 880, dur:0.08, type:"sine", gain:0.05, when:0.06}); },
+        gainAmmo()    { beep({freq: 520, dur: 0.08, type:"triangle", gain:0.06, sweep:+120}); beep({freq: 740, dur:0.06, type:"triangle", gain:0.04, when:0.05}); },
+        hitShot()     { beep({freq: 220, dur: 0.04, type:"square", gain:0.05, sweep:-40}); },
+        destroyBox()  { beep({freq: 180, dur: 0.06, type:"sawtooth", gain:0.06, sweep:+220}); beep({freq: 110, dur: 0.08, type:"sawtooth", gain:0.05, when:0.03}); },
+        hitObstacle() { beep({freq: 140, dur: 0.10, type:"square", gain:0.07, sweep:-60}); },
+        carDies()     { beep({freq: 220, dur: 0.10, type:"sawtooth", gain:0.07, sweep:-140}); beep({freq: 120, dur: 0.18, type:"sawtooth", gain:0.06, when:0.08, sweep:-60}); },
+      };
+
+      function updateSoundBtn() {
+        soundBtn.textContent = soundOn ? "Sound: On" : "Sound: Off";
+        soundBtn.classList.toggle("warn", !soundOn);
+      }
+
+      // -----------------------------
+      // World
+      // -----------------------------
       const road = { x: Math.floor(W * 0.18), y: 0, w: Math.floor(W * 0.64), h: H, lanes: 3 };
       const laneW = road.w / road.lanes;
 
@@ -333,54 +285,78 @@
 
       // Modes
       let mode = null; // "infinite" | "scarcity"
-      let ammo = Infinity; // bullets available (scarcity only)
+      let ammo = Infinity; // scarcity only
+      let lives = 1;        // always starts at 1
+
+      // Invulnerability after a hit (to avoid instant multiple life drains)
+      let invuln = 0; // seconds
+      const INVULN_TIME = 0.65;
+
+      // Score: ONLY from destroying obstacle boxes
+      let score = 0;
 
       const obstacleKinds = [
         { name: "barrel", w: 0.55, h: 0.55, color: "#fbbf24" },
         { name: "cone",   w: 0.45, h: 0.65, color: "#fb7185" },
-        // "block" is treated as the "box" (bigger => more bullets)
-        { name: "block",  w: 0.78, h: 0.62, color: "#a78bfa" },
+        { name: "block",  w: 0.78, h: 0.62, color: "#a78bfa" }, // big box
         { name: "oil",    w: 0.75, h: 0.35, color: "#94a3b8" },
       ];
 
       const ammoKind = { name: "ammo", w: 0.74, h: 0.56, color: "#60a5fa" };
+      const lifeKind = { name: "life", w: 0.72, h: 0.54, color: "#34d399" };
 
       function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
       function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
       function kindHP(kindName) {
-        // Bigger boxes ("block") require more bullets.
         if (kindName === "cone") return 1;
         if (kindName === "barrel") return 2;
         if (kindName === "oil") return 2;
-        if (kindName === "block") return 4; // big "box"
+        if (kindName === "block") return 4; // big box
         return 2;
       }
 
       function ammoValueBySpeed() {
-        // shown in tens: 1=>10, 2=>20, ...
-        // scale a bit with speed so late game can refill more.
+        // shown in tens: 1=>10, 2=>20...
         const hi = (speedMul < 1.7) ? 3 : (speedMul < 2.6) ? 4 : 5;
         return randInt(1, hi);
       }
 
-      function spawnObstacle() {
+      function lifeValueBySpeed() {
+        // number of lives gained
+        const hi = (speedMul < 2.2) ? 2 : 3;
+        return randInt(1, hi);
+      }
+
+      function obstaclePoints(o) {
+        // points depend on box "size" / toughness
+        // (simple, stable formula: based on area factor and hpMax)
+        const area = (o.w * o.h) / (laneW * laneW); // ~0.2..0.7
+        const sizeTier = Math.max(1, Math.round(area * 6)); // 1..4-ish
+        return 10 * sizeTier + 10 * (o.hpMax - 1);
+      }
+
+      function spawnThing() {
         const lane = randInt(0, road.lanes - 1);
 
         let kind = null;
         let isAmmo = false;
+        let isLife = false;
 
+        // Scarcity: add ammo boxes
         if (mode === "scarcity") {
           const ammoProb = clamp(0.14 + (speedMul - 1.0) * 0.03, 0.14, 0.22);
-          if (Math.random() < ammoProb) {
-            kind = ammoKind;
-            isAmmo = true;
-          }
+          if (Math.random() < ammoProb) { kind = ammoKind; isAmmo = true; }
         }
 
+        // Both modes: add life boxes (rarer)
         if (!kind) {
-          kind = obstacleKinds[randInt(0, obstacleKinds.length - 1)];
+          const lifeProb = clamp(0.06 + (speedMul - 1.0) * 0.01, 0.06, 0.10);
+          if (Math.random() < lifeProb) { kind = lifeKind; isLife = true; }
         }
+
+        // Otherwise: normal obstacle
+        if (!kind) kind = obstacleKinds[randInt(0, obstacleKinds.length - 1)];
 
         const ow = Math.floor(laneW * kind.w);
         const oh = Math.floor(laneW * kind.h);
@@ -393,26 +369,40 @@
         }
 
         if (isAmmo) {
-          const val = ammoValueBySpeed(); // 1..5 => 10..50
+          const val = ammoValueBySpeed(); // tens
           obstacles.push({
             lane, x: ox, y: oy, w: ow, h: oh,
             kind: "ammo", color: kind.color,
-            isAmmo: true,
+            isAmmo: true, isLife: false,
             value: val,
             hp: 1, hpMax: 1,
           });
-        } else {
-          const hp0 = kindHP(kind.name);
+          return;
+        }
+
+        if (isLife) {
+          const val = lifeValueBySpeed(); // lives
           obstacles.push({
             lane, x: ox, y: oy, w: ow, h: oh,
-            kind: kind.name, color: kind.color,
-            isAmmo: false,
-            value: 0,
-            hp: hp0, hpMax: hp0,
+            kind: "life", color: kind.color,
+            isAmmo: false, isLife: true,
+            value: val,
+            hp: 1, hpMax: 1,
           });
+          return;
         }
+
+        const hp0 = kindHP(kind.name);
+        obstacles.push({
+          lane, x: ox, y: oy, w: ow, h: oh,
+          kind: kind.name, color: kind.color,
+          isAmmo: false, isLife: false,
+          value: 0,
+          hp: hp0, hpMax: hp0,
+        });
       }
 
+      // Road dashes
       const dashes = [];
       function initDashes() {
         dashes.length = 0;
@@ -421,17 +411,20 @@
         for (let i = 0; i < count; i++) dashes.push({ y: i * total });
       }
 
+      // Runtime flags
       let running = false;
       let paused = false;
       let crashed = false;
 
-      let score = 0;
+      // Speed
       let speedMul = 1.0;
       let lastT = 0;
 
+      // Spawning
       let spawnTimer = 0;
       let spawnEvery = 0.95;
 
+      // Input holds
       let moveLeftHeld = false;
       let moveRightHeld = false;
       let laneMoveCooldown = 0;
@@ -439,7 +432,7 @@
 
       let shootHeld = false;
       let shootCooldown = 0;
-      const shootDelay = 0.14; // fire rate
+      const shootDelay = 0.14;
       let shootHeldTimer = 0;
 
       function aabb(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -453,17 +446,21 @@
       }
 
       function setUI() {
-        scoreEl.textContent = Math.floor(score).toString();
+        scoreEl.textContent = String(Math.floor(score));
         speedEl.textContent = speedMul.toFixed(1);
-        pauseBtn.textContent = paused ? "Resume" : "Pause";
 
-        // bullets display only meaningful after mode chosen
         if (!mode) {
           bulletsChip.style.display = "none";
+          livesChip.style.display = "none";
         } else {
           bulletsChip.style.display = "inline-flex";
+          livesChip.style.display = "inline-flex";
           bulletsEl.textContent = (mode === "scarcity") ? String(ammo) : "∞";
+          livesEl.textContent = String(lives);
         }
+
+        pauseBtn.textContent = paused ? "Resume" : "Pause";
+        updateSoundBtn();
       }
 
       function resetGame() {
@@ -472,6 +469,7 @@
 
         score = 0;
         speedMul = 1.0;
+
         spawnTimer = 0;
         spawnEvery = 0.95;
 
@@ -483,12 +481,17 @@
         shootHeldTimer = 0;
 
         ammo = (mode === "scarcity") ? 0 : Infinity;
+        lives = 1;
+        invuln = 0;
 
         resetCar();
         initDashes();
         setUI();
       }
 
+      // -----------------------------
+      // Drawing helpers
+      // -----------------------------
       function roundRect(ctx, x, y, w, h, r) {
         const rr = Math.min(r, w/2, h/2);
         ctx.beginPath();
@@ -504,7 +507,6 @@
         roundRect(ctx, road.x, road.y, road.w, road.h, 18);
         ctx.fillStyle = "rgba(255,255,255,0.04)";
         ctx.fill();
-
         ctx.strokeStyle = "rgba(255,255,255,0.14)";
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -528,6 +530,9 @@
       function drawCar() {
         const x = car.x, y = car.y, w = car.w, h = car.h;
         ctx.save();
+
+        // invuln flash
+        if (invuln > 0) ctx.globalAlpha = 0.55 + 0.45 * Math.sin(performance.now() * 0.02);
 
         ctx.fillStyle = "rgba(0,0,0,0.35)";
         roundRect(ctx, x + 6, y + 10, w, h, 16);
@@ -555,8 +560,8 @@
         ctx.fillRect(x + w - 2, y + h*0.20, 8, h*0.22);
         ctx.fillRect(x + w - 2, y + h*0.58, 8, h*0.22);
 
-        // tiny muzzle / cannon hint
-        ctx.fillStyle = "rgba(231,238,252,0.8)";
+        // muzzle
+        ctx.fillStyle = "rgba(231,238,252,0.85)";
         roundRect(ctx, x + w*0.47, y - 6, w*0.06, 10, 6);
         ctx.fill();
 
@@ -565,23 +570,18 @@
 
       function drawAmmoBox(o) {
         ctx.save();
-
-        // shadow
         ctx.fillStyle = "rgba(0,0,0,0.33)";
         roundRect(ctx, o.x + 5, o.y + 8, o.w, o.h, 14);
         ctx.fill();
 
-        // body
         ctx.fillStyle = o.color;
         roundRect(ctx, o.x, o.y, o.w, o.h, 14);
         ctx.fill();
 
-        // inner panel
         ctx.fillStyle = "rgba(8, 12, 18, 0.25)";
         roundRect(ctx, o.x + o.w*0.10, o.y + o.h*0.18, o.w*0.80, o.h*0.64, 12);
         ctx.fill();
 
-        // text: value (in tens)
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "rgba(231,238,252,0.95)";
@@ -595,8 +595,46 @@
         ctx.restore();
       }
 
+      function drawLifeBox(o) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.33)";
+        roundRect(ctx, o.x + 5, o.y + 8, o.w, o.h, 14);
+        ctx.fill();
+
+        ctx.fillStyle = o.color;
+        roundRect(ctx, o.x, o.y, o.w, o.h, 14);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(8, 12, 18, 0.22)";
+        roundRect(ctx, o.x + o.w*0.10, o.y + o.h*0.18, o.w*0.80, o.h*0.64, 12);
+        ctx.fill();
+
+        // heart-ish icon (simple)
+        ctx.fillStyle = "rgba(231,238,252,0.85)";
+        ctx.beginPath();
+        const cx = o.x + o.w*0.50, cy = o.y + o.h*0.36, r = Math.min(o.w,o.h)*0.10;
+        ctx.arc(cx - r, cy, r, 0, Math.PI*2);
+        ctx.arc(cx + r, cy, r, 0, Math.PI*2);
+        ctx.lineTo(cx, cy + r*2.2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(231,238,252,0.98)";
+        ctx.font = "900 40px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText(String(o.value), o.x + o.w/2, o.y + o.h*0.56);
+
+        ctx.fillStyle = "rgba(231,238,252,0.80)";
+        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillText("LIFE", o.x + o.w/2, o.y + o.h*0.82);
+
+        ctx.restore();
+      }
+
       function drawObstacle(o) {
         if (o.isAmmo) return drawAmmoBox(o);
+        if (o.isLife) return drawLifeBox(o);
 
         ctx.save();
         ctx.fillStyle = "rgba(0,0,0,0.33)";
@@ -657,7 +695,7 @@
         ctx.save();
         ctx.globalAlpha = 0.6;
         ctx.fillStyle = "rgba(255,255,255,0.12)";
-        roundRect(ctx, 14, 14, 330, 34, 12);
+        roundRect(ctx, 14, 14, 350, 34, 12);
         ctx.fill();
         ctx.globalAlpha = 1;
         ctx.fillStyle = "rgba(231,238,252,0.9)";
@@ -693,6 +731,9 @@
         }
       }
 
+      // -----------------------------
+      // Gameplay
+      // -----------------------------
       function tryMove(dir) {
         const next = clamp(car.lane + dir, 0, road.lanes - 1);
         if (next !== car.lane) {
@@ -702,11 +743,40 @@
       }
 
       function grantAmmo(units) {
-        // units is "value in tens": 1=>10, 2=>20...
+        if (mode !== "scarcity") return;
         const gain = units * 10;
-        if (mode !== "scarcity") return; // only meaningful in scarcity
         ammo += gain;
         setUI();
+        SFX.gainAmmo();
+      }
+
+      function grantLife(n) {
+        lives += n;
+        setUI();
+        SFX.gainLife();
+      }
+
+      function spendLife() {
+        if (invuln > 0) return;
+
+        lives -= 1;
+        invuln = INVULN_TIME;
+        setUI();
+        SFX.hitObstacle();
+
+        if (lives <= 0) {
+          die();
+        }
+      }
+
+      function die() {
+        crashed = true;
+        paused = false;
+        running = false;
+        SFX.carDies();
+        setOverlay(true, "Car Died!", `Final score: ${Math.floor(score)}. Tap Start or press R.`);
+        modeRow.style.display = "none";
+        startRow.style.display = "flex";
       }
 
       function shootOnce() {
@@ -731,15 +801,21 @@
       }
 
       function update(dt) {
+        // speed ramp
         speedMul += dt * 0.03;
         speedMul = Math.min(speedMul, 4.0);
         const speed = 520 * speedMul;
 
+        // invuln timer
+        invuln = Math.max(0, invuln - dt);
+
+        // spawn pacing
         spawnEvery = clamp(0.95 - (speedMul - 1.0) * 0.15, 0.35, 0.95);
 
-        score += dt * (12 * speedMul);
+        // UI refresh
         setUI();
 
+        // lane movement (hold)
         laneMoveCooldown = Math.max(0, laneMoveCooldown - dt);
         if (laneMoveCooldown <= 0) {
           if (moveLeftHeld) tryMove(-1);
@@ -758,19 +834,22 @@
           shootHeldTimer = 0;
         }
 
+        // smooth lane position
         const targetX = laneCenter(car.lane) - car.w / 2;
         car.x += (targetX - car.x) * (1 - Math.pow(0.001, dt));
 
+        // dash motion
         const dashSpeed = speed * 0.65;
         const dashH = 44, gap = 32, total = dashH + gap;
         for (const d of dashes) d.y += dashSpeed * dt;
         for (const d of dashes) if (d.y > H) d.y -= (Math.ceil(H / total) + 2) * total;
 
+        // spawn obstacles
         spawnTimer += dt;
         while (spawnTimer >= spawnEvery) {
           spawnTimer -= spawnEvery;
-          spawnObstacle();
-          if (speedMul > 2.0 && Math.random() < 0.25) spawnObstacle();
+          spawnThing();
+          if (speedMul > 2.0 && Math.random() < 0.25) spawnThing();
         }
 
         // move obstacles
@@ -779,67 +858,85 @@
           if (obstacles[i].y > H + 80) obstacles.splice(i, 1);
         }
 
-        // move bullets upward
+        // move bullets
         for (let i = bullets.length - 1; i >= 0; i--) {
           bullets[i].y -= bullets[i].vy * dt;
           if (bullets[i].y < -bullets[i].h - 20) bullets.splice(i, 1);
         }
 
-        // bullet vs obstacle collision
+        // bullet vs things
         for (let bi = bullets.length - 1; bi >= 0; bi--) {
           const b = bullets[bi];
           let hit = false;
 
           for (let oi = obstacles.length - 1; oi >= 0; oi--) {
             const o = obstacles[oi];
-            if (aabb(b.x, b.y, b.w, b.h, o.x, o.y, o.w, o.h)) {
-              hit = true;
+            if (!aabb(b.x, b.y, b.w, b.h, o.x, o.y, o.w, o.h)) continue;
 
-              if (o.isAmmo) {
-                // In scarcity: shooting ammo box gives ammo (instead of "destroying to score")
-                if (mode === "scarcity") {
-                  grantAmmo(o.value);
-                  score += 2;
-                }
-                obstacles.splice(oi, 1);
-              } else {
-                o.hp -= 1;
-                if (o.hp <= 0) {
-                  obstacles.splice(oi, 1);
-                  score += 8 + 3 * (o.hpMax - 1);
-                } else {
-                  score += 1;
-                }
-              }
+            // bullet consumed on hit (even if "no effect" target)
+            hit = true;
+
+            if (o.isLife) {
+              // shooting life box: NO EFFECT (box stays)
+              // (we still remove bullet to keep game simple)
               break;
             }
+
+            if (o.isAmmo) {
+              // shooting ammo box gives ammo (scarcity only)
+              if (mode === "scarcity") grantAmmo(o.value);
+              obstacles.splice(oi, 1);
+              break;
+            }
+
+            // normal obstacle: damage
+            o.hp -= 1;
+            SFX.hitShot();
+
+            if (o.hp <= 0) {
+              const pts = obstaclePoints(o);
+              score += pts;
+              obstacles.splice(oi, 1);
+              SFX.destroyBox();
+            }
+            break;
           }
 
           if (hit) bullets.splice(bi, 1);
         }
 
-        // car collision
+        // car collision with things
         for (let oi = obstacles.length - 1; oi >= 0; oi--) {
           const o = obstacles[oi];
           if (!aabb(car.x, car.y, car.w, car.h, o.x, o.y, o.w, o.h)) continue;
 
-          if (o.isAmmo) {
-            // collect ammo instead of dying
-            if (mode === "scarcity") {
-              grantAmmo(o.value);
-              score += 2;
-            }
+          if (o.isLife) {
+            grantLife(o.value);
             obstacles.splice(oi, 1);
             continue;
           }
 
-          crash();
+          if (o.isAmmo) {
+            if (mode === "scarcity") grantAmmo(o.value);
+            obstacles.splice(oi, 1);
+            continue;
+          }
+
+          // hit normal obstacle
+          if (invuln <= 0) {
+            obstacles.splice(oi, 1); // remove the obstacle on hit
+            spendLife();
+          }
           break;
         }
       }
 
+      // -----------------------------
+      // Main loop
+      // -----------------------------
       function step(t) {
         requestAnimationFrame(step);
+
         if (!running) { render(); lastT = t; return; }
 
         const dt = Math.min(0.033, (t - lastT) / 1000 || 0);
@@ -861,15 +958,6 @@
         setUI();
       }
 
-      function crash() {
-        crashed = true;
-        paused = false;
-        setOverlay(true, "Crashed!", `Final score: ${Math.floor(score)}. Tap Start or press R.`);
-        // keep startRow visible so they can restart
-        modeRow.style.display = "none";
-        startRow.style.display = "flex";
-      }
-
       function togglePause() {
         if (!running || crashed) return;
         paused = !paused;
@@ -882,6 +970,9 @@
         start();
       }
 
+      // -----------------------------
+      // Input
+      // -----------------------------
       function onKeyDown(e) {
         if (e.repeat) return;
         const k = e.key.toLowerCase();
@@ -898,36 +989,34 @@
       }
 
       function bindTouchHold(btn, setter) {
-        btn.addEventListener("touchstart", (e) => { setter(true); e.preventDefault(); }, { passive: false });
+        btn.addEventListener("touchstart", (e) => { setter(true); e.preventDefault(); ensureAudio(); }, { passive: false });
         btn.addEventListener("touchend",   (e) => { setter(false); e.preventDefault(); }, { passive: false });
         btn.addEventListener("touchcancel",() => setter(false));
 
-        btn.addEventListener("pointerdown", (e) => { setter(true); e.preventDefault(); });
+        btn.addEventListener("pointerdown", (e) => { setter(true); e.preventDefault(); ensureAudio(); });
         btn.addEventListener("pointerup",   (e) => { setter(false); e.preventDefault(); });
         btn.addEventListener("pointercancel", () => setter(false));
         btn.addEventListener("pointerleave",  () => setter(false));
       }
 
+      // -----------------------------
+      // Mode selection overlay
+      // -----------------------------
       function chooseMode(nextMode) {
         mode = nextMode;
 
-        // update overlay text + hint
         if (mode === "infinite") {
-          setOverlay(true, "Infinite Shoot", "Unlimited bullets. Shoot to destroy obstacles. Bigger boxes need more bullets.");
-          hintSub.textContent = "On phone: use fixed Left/Right/Shoot. (Unlimited bullets)";
+          setOverlay(true, "Infinite Shoot", "Unlimited bullets. Shoot to destroy obstacles. Bigger boxes need more bullets. Lives start at 1.");
+          hintSub.textContent = "On phone: fixed Left/Right/Shoot. (Unlimited bullets)";
         } else {
-          setOverlay(true, "Scarcity", "You start with 0 bullets. Collect AMMO boxes by hitting or shooting them (number is in tens).");
-          hintSub.textContent = "On phone: use fixed Left/Right/Shoot. (Shooting needs bullets; collect AMMO boxes)";
+          setOverlay(true, "Scarcity", "You start with 0 bullets. Collect AMMO boxes by hitting or shooting them (number is in tens). Lives start at 1.");
+          hintSub.textContent = "On phone: fixed Left/Right/Shoot. (Shooting needs bullets; collect AMMO boxes)";
         }
 
-        // show Start/How, hide mode selection
         modeRow.style.display = "none";
         startRow.style.display = "flex";
 
-        // reset everything for the chosen mode
         resetGame();
-
-        // keep overlay visible (ready)
         overlay.classList.add("show");
       }
 
@@ -946,37 +1035,51 @@
         setUI();
       }
 
-      // UI
-      pauseBtn.addEventListener("click", () => togglePause());
-      restartBtn.addEventListener("click", () => startOrRestart());
-      startBtn.addEventListener("click", () => startOrRestart());
+      // -----------------------------
+      // UI bindings
+      // -----------------------------
+      pauseBtn.addEventListener("click", () => { ensureAudio(); togglePause(); });
+      restartBtn.addEventListener("click", () => { ensureAudio(); startOrRestart(); });
+      startBtn.addEventListener("click", () => { ensureAudio(); startOrRestart(); });
 
-      modeInfiniteBtn.addEventListener("click", () => chooseMode("infinite"));
-      modeScarcityBtn.addEventListener("click", () => chooseMode("scarcity"));
+      modeInfiniteBtn.addEventListener("click", () => { ensureAudio(); chooseMode("infinite"); });
+      modeScarcityBtn.addEventListener("click", () => { ensureAudio(); chooseMode("scarcity"); });
 
       howBtn.addEventListener("click", () => {
-        if (!mode) return;
-        const text =
+        const txt =
           (mode === "infinite")
             ? "Mode: Infinite Shoot\n\n" +
-              "• Unlimited bullets (Bullets: ∞).\n" +
-              "• Shoot (F / Shoot button) to destroy obstacles.\n" +
-              "• Bigger boxes need more bullets.\n" +
-              "• Dodge if you prefer.\n"
+              "• Bullets are unlimited (∞).\n" +
+              "• Only DESTROYING obstacle boxes gives points.\n" +
+              "• Bigger/tougher boxes give more points.\n" +
+              "• Lives start at 1.\n" +
+              "• LIFE boxes (green) add lives when you hit them.\n" +
+              "• Shooting LIFE boxes has no effect.\n"
             : "Mode: Scarcity\n\n" +
               "• You start with 0 bullets.\n" +
-              "• AMMO boxes appear (blue). The number on it is in tens:\n" +
-              "  1 = 10 bullets, 2 = 20 bullets, etc.\n" +
-              "• Hit an AMMO box OR shoot it to collect bullets.\n" +
-              "• Shooting consumes 1 bullet each time.\n";
+              "• AMMO boxes (blue): number is in tens (1=10 bullets, 2=20,...).\n" +
+              "• Hit or shoot AMMO to gain bullets.\n" +
+              "• Shooting costs 1 bullet each time.\n" +
+              "• Only DESTROYING obstacle boxes gives points.\n" +
+              "• Lives start at 1.\n" +
+              "• LIFE boxes (green) add lives when you hit them.\n" +
+              "• Shooting LIFE boxes has no effect.\n";
         alert(
-          text +
+          txt +
           "\nCommon:\n" +
           "• 3 lanes.\n" +
           "• Obstacles fall from the top.\n" +
           "• Speed increases over time.\n" +
+          "• Hitting an obstacle spends 1 life (until life=0).\n" +
           "• Space pauses, R restarts.\n"
         );
+      });
+
+      soundBtn.addEventListener("click", () => {
+        // attempt to init audio on first interaction
+        ensureAudio();
+        soundOn = !soundOn;
+        setUI();
       });
 
       // Touch controls (hold left/right, hold shoot for auto-fire)
@@ -984,9 +1087,10 @@
       bindTouchHold(rightBtn, (v) => { moveRightHeld = v; if (v) moveLeftHeld = false; });
       bindTouchHold(shootBtn, (v) => { shootHeld = v; if (v) shootOnce(); });
 
-      // Tap stage to start (only after a mode is chosen)
+      // Tap stage to start (only after mode chosen)
       document.getElementById("stage").addEventListener("pointerdown", () => {
         if (!mode) return;
+        ensureAudio();
         if (!running) startOrRestart();
       });
 
@@ -994,6 +1098,7 @@
       window.addEventListener("keyup", onKeyUp);
 
       // Init
+      updateSoundBtn();
       initDashes();
       resetCar();
       showModePicker();
